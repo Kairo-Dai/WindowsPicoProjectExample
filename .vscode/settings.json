@@ -29,9 +29,9 @@
         "PICO_SDK_PATH": "${workspaceRoot}/../pico-sdk"
     },
     
-    "cmake.generator": "Ninja",
+    "cmake.generator": "MinGW Makefiles",
     "cmake.configureSettings": {
-        "CMAKE_MAKE_PROGRAM": "${workspaceRoot}/../ninja.exe"
+        "CMAKE_MAKE_PROGRAM": "D:\\msys64\\mingw64\\bin\\mingw32-make.exe"
     },
     "files.associations": {
         "stdlib.h": "c"

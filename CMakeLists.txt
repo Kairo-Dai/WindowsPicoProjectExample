@@ -15,17 +15,6 @@ endif()
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-m0plus -mthumb")
-foreach(LANG IN ITEMS C CXX ASM)
-    set(CMAKE_${LANG}_FLAGS_INIT "${ARM_GCC_COMMON_FLAGS}")
-    if (PICO_DEOPTIMIZED_DEBUG)
-        set(CMAKE_${LANG}_FLAGS_DEBUG_INIT "-O0")
-    else()
-        set(CMAKE_${LANG}_FLAGS_DEBUG_INIT "-Og")
-    endif()
-    set(CMAKE_${LANG}_LINK_FLAGS "-Wl,--build-id=none")
-endforeach()
-
 # rest of your project
 add_executable(hello_world
     hello_world.c

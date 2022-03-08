@@ -32,5 +32,8 @@
     "cmake.generator": "Ninja",
     "cmake.configureSettings": {
         "CMAKE_MAKE_PROGRAM": "${workspaceRoot}/../ninja.exe"
+    },
+    "files.associations": {
+        "stdlib.h": "c"
     }
 }

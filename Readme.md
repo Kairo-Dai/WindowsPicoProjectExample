@@ -11,6 +11,7 @@
     - [.vscode](#vscode)
     - [项目CMakeLists.txt](#项目cmakeliststxt)
   - [代码构建](#代码构建)
+  - [串口调试工具使用](#串口调试工具使用)
 
 # windows C++ 树莓派 pico 配置
 
@@ -29,42 +30,63 @@
 创建`gcc-arm-none-eabi.cmake`文件，拷贝如下内容
 
 ```cmake
-# Call Cmake from the 'build' subfolder with the command below.
-# For using Make:
-# cmake -DCMAKE_MAKE_PROGRAM=make.exe -DCMAKE_TOOLCHAIN_FILE="arm-none-eabi-gcc.cmake" -G "Unix Makefiles" ..
-# followed by
-# 'make' or 'cmake --build .' to build it
-#
-# For using Ninja:
-# cmake -DCMAKE_MAKE_PROGRAM=ninja.exe -DCMAKE_TOOLCHAIN_FILE="arm-none-eabi-gcc.cmake" -G "Ninja" ..
-# followed by
-# 'ninja' or 'cmake --build .' to build it
+set(CMAKE_SYSTEM_NAME PICO)
+set(CMAKE_SYSTEM_PROCESSOR cortex-m0plus)
+
+if (NOT PICO_GCC_TRIPLE)
+    if (DEFINED ENV{PICO_GCC_TRIPLE})
+        set(PICO_GCC_TRIPLE $ENV{PICO_GCC_TRIPLE})
+        message("PICO_GCC_TRIPLE set from environment: $ENV{PICO_GCC_TRIPLE}")
+    else()
+        set(PICO_GCC_TRIPLE arm-none-eabi)
+        #pico_message_debug("PICO_GCC_TRIPLE defaulted to arm-none-eabi")
+    endif()
+endif()
+
 
 set(_THIS_MODULE_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}")
-
-set(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_SYSTEM_PROCESSOR ARM)
-
 set(ARM_TOOLCHAIN_DIR "${_THIS_MODULE_BASE_DIR}/bin")
 set(BINUTILS_PATH ${ARM_TOOLCHAIN_DIR}) 
+set(TOOLCHAIN_PREFIX ${ARM_TOOLCHAIN_DIR}/arm-none-eabi)
 
-set(TOOLCHAIN_PREFIX ${ARM_TOOLCHAIN_DIR}/arm-none-eabi-)
+set(TOOL_FILE_EXT ".exe")
 
-set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+# Find GCC for ARM.
+set(PICO_COMPILER_CC "${TOOLCHAIN_PREFIX}-gcc${TOOL_FILE_EXT}")
+set(PICO_COMPILER_CXX "${TOOLCHAIN_PREFIX}-g++${TOOL_FILE_EXT}")
+set(PICO_COMPILER_ASM "${PICO_COMPILER_CC}" CACHE INTERNAL "")
+set(PICO_OBJCOPY "${TOOLCHAIN_PREFIX}-objcopy${TOOL_FILE_EXT}")
+set(PICO_OBJDUMP "${TOOLCHAIN_PREFIX}-objdump${TOOL_FILE_EXT}")
 
-set(CMAKE_C_COMPILER "${TOOLCHAIN_PREFIX}gcc.exe")
-set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER "${TOOLCHAIN_PREFIX}g++.exe")
+# Specify the cross compiler.
+set(CMAKE_C_COMPILER ${PICO_COMPILER_CC} CACHE FILEPATH "C compiler")
+set(CMAKE_CXX_COMPILER ${PICO_COMPILER_CXX} CACHE FILEPATH "C++ compiler")
+set(CMAKE_C_OUTPUT_EXTENSION .o)
 
-set(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}objcopy CACHE INTERNAL "objcopy tool")
-set(CMAKE_SIZE_UTIL ${TOOLCHAIN_PREFIX}size CACHE INTERNAL "size tool")
+# todo should we be including CMakeASMInformation anyway - i guess that is host side
+set(CMAKE_ASM_COMPILER ${PICO_COMPILER_ASM} CACHE FILEPATH "ASM compiler")
+set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> <DEFINES> <INCLUDES> <FLAGS> -o <OBJECT> -c <SOURCE>")
+set(CMAKE_INCLUDE_FLAG_ASM "-I")
+set(CMAKE_OBJCOPY ${PICO_OBJCOPY} CACHE FILEPATH "")
+set(CMAKE_OBJDUMP ${PICO_OBJDUMP} CACHE FILEPATH "")
 
+# Disable compiler checks.
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
+# Add target system root to cmake find path.
 set(CMAKE_FIND_ROOT_PATH ${BINUTILS_PATH})
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-m0plus -mthumb")
+# Look for includes and libraries only in the target system prefix.
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+
+option(PICO_DEOPTIMIZED_DEBUG "Build debug builds with -O0" 0)
+
+# on ARM -mcpu should not be mixed with -march
+set(ARM_GCC_COMMON_FLAGS " -mcpu=cortex-m0plus -mthumb")
 foreach(LANG IN ITEMS C CXX ASM)
     set(CMAKE_${LANG}_FLAGS_INIT "${ARM_GCC_COMMON_FLAGS}")
     if (PICO_DEOPTIMIZED_DEBUG)
@@ -75,7 +97,9 @@ foreach(LANG IN ITEMS C CXX ASM)
     set(CMAKE_${LANG}_LINK_FLAGS "-Wl,--build-id=none")
 endforeach()
 ```
+
 将该文件放置到工具链根目录，目录结构如下
+
 ```
 .
 |-- arm-none-eabi
@@ -210,3 +234,7 @@ pico_add_extra_outputs(hello_world)
 
 ![](img/build.png)
 
+
+## 串口调试工具使用
+
+![](img/Terminal%20usage.png)

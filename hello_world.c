@@ -14,6 +14,7 @@
 
 int main()
 {
+    stdio_usb_init();
     stdio_init_all();
 
     const uint LED_PIN = PICO_DEFAULT_LED_PIN;

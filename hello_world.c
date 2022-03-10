@@ -1,9 +1,3 @@
-/**
- * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/stdio_usb.h"
@@ -14,7 +8,6 @@
 
 int main()
 {
-    stdio_usb_init();
     stdio_init_all();
 
     const uint LED_PIN = PICO_DEFAULT_LED_PIN;

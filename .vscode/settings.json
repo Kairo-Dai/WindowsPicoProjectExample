@@ -34,6 +34,7 @@
         "CMAKE_MAKE_PROGRAM": "D:\\msys64\\mingw64\\bin\\mingw32-make.exe"
     },
     "files.associations": {
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "stdio_usb.h": "c"
     }
 }

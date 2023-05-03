@@ -222,6 +222,7 @@ pico_add_extra_outputs(hello_world)
 
 ## 代码构建
 1. 选择工具链
+GCC Arm Embedded
 
 ![](img/toolchainlist.png)
 
